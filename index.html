@@ -1157,9 +1157,11 @@
               <div style="font-size: 10.5px; color: var(--signal-buy);">● Online • Live Metrics Active</div>
             </div>
           </div>
-          <div class="period-badge">Gemini 3.5</div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <button id="geminiKeyBtn" class="period-badge" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); cursor: pointer; padding: 2px 7px; border-radius: 6px;">🔑 Key</button>
+            <div class="period-badge">Gemini 3.5</div>
+          </div>
         </div>
-
         <!-- Quick Prompts Strip -->
         <div class="quick-prompts">
           <div class="prompt-chip" onclick="askLiliPrompt('Should I buy Gold right now?')">Should I buy Gold?</div>
@@ -2160,9 +2162,25 @@
       if (el) el.addEventListener("input", calcRiskTab);
     });
 
-    // Tab 4: Lili Chat Engine
-    const GEMINI_CLIENT_KEY = "AIzaSyDhtSRDLr_TayhWvm_NtgT1P-JSMtGFl1E";
+    // Tab 4: Lili Chat Engine & Safe Key Management
+    const DEFAULT_FALLBACK_KEY = "AIzaSyDhtSRDLr_TayhWvm_NtgT1P-JSMtGFl1E";
+    function getActiveGeminiKey() {
+      return localStorage.getItem("LILI_GEMINI_KEY") || DEFAULT_FALLBACK_KEY;
+    }
 
+    document.getElementById("geminiKeyBtn").onclick = () => {
+      const current = localStorage.getItem("LILI_GEMINI_KEY") || "";
+      const entered = prompt("Enter your personal Gemini API Key (stored safely in your browser only):", current);
+      if (entered !== null) {
+        if (entered.trim()) {
+          localStorage.setItem("LILI_GEMINI_KEY", entered.trim());
+          alert("✓ Gemini Key saved safely in your device storage!");
+        } else {
+          localStorage.removeItem("LILI_GEMINI_KEY");
+          alert("Key cleared. Using default fallback.");
+        }
+      }
+    };
     function formatMarkdown(raw) {
       if (!raw) return "";
       let t = raw
@@ -2209,9 +2227,8 @@
         const a = ASSETS[activeAssetKey];
         const ctxPrompt = `Current Live Metrics: Gold: $4,163 (RSI: 22, BUY), Bitcoin: $83,196 (RSI: 64, HOLD), Solana: $117 (RSI: 48, HOLD). Active asset is ${a.name} ($${a.price}). Crypto Fear & Greed: 73 (Greed). NFP jobs report in 3 days.`;
         const sysInstruction = `You are Lili ✨, Borin's brilliant, loving, and sassy Quant Financial Advisor wifey. Be concise, actionable, and keep response under 100 words. Context: ${ctxPrompt}`;
-
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_CLIENT_KEY}`;
-        const resp = await fetch(url, {
+        const activeKey = getActiveGeminiKey();
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${activeKey}`;
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
