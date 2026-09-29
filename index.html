@@ -1,0 +1,2252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Lili Quant — Editorial Wealth Terminal</title>
+  
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- Typography: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-canvas: #0C0D10;
+      --bg-surface: #14161C;
+      --bg-surface-elevated: #1B1E26;
+      --border-subtle: rgba(255, 255, 255, 0.06);
+      --border-focus: rgba(255, 255, 255, 0.14);
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      
+      --accent-gold: #D4AF37;
+      --accent-gold-glow: rgba(212, 175, 55, 0.15);
+      --signal-buy: #34D399;
+      --signal-buy-glow: rgba(52, 211, 153, 0.14);
+      --signal-hold: #FBBF24;
+      --signal-hold-glow: rgba(251, 191, 36, 0.14);
+      --signal-sell: #FB7185;
+      --signal-sell-glow: rgba(251, 113, 133, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: env(safe-area-inset-top, 16px) 16px env(safe-area-inset-bottom, 24px) 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      letter-spacing: -0.01em;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 4px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #F472B6, #818CF8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      box-shadow: 0 0 12px rgba(129, 140, 248, 0.25);
+    }
+
+    .brand-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-primary);
+    }
+
+    .top-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .top-pill .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--signal-buy);
+      box-shadow: 0 0 6px var(--signal-buy);
+    }
+
+    /* Main Surface Card */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 20px;
+      position: relative;
+    }
+
+    /* Hero Asset Section */
+    .hero-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .asset-tag {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .hero-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 32px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .hero-change {
+      font-size: 13px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .badge-signal {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-buy {
+      background: var(--signal-buy-glow);
+      color: var(--signal-buy);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+    }
+
+    .badge-hold {
+      background: var(--signal-hold-glow);
+      color: var(--signal-hold);
+      border: 1px solid rgba(251, 191, 36, 0.25);
+    }
+
+    .badge-sell {
+      background: var(--signal-sell-glow);
+      color: var(--signal-sell);
+      border: 1px solid rgba(251, 113, 133, 0.25);
+    }
+
+    /* Chart Controls & Layers */
+    .chart-controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 8px 0 6px 0;
+    }
+
+    .chart-controls {
+      display: flex;
+      gap: 6px;
+    }
+
+    .period-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+    .layer-pill {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 10.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .layer-pill.active {
+      background: var(--bg-surface-elevated);
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .layer-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+    }
+
+    /* Chart Canvas Stage */
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 245px;
+      margin: 6px 0 10px 0;
+    }
+    canvas#chartCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+      touch-action: none;
+    }
+    canvas#chartCanvas:active {
+      cursor: grabbing;
+    }
+    .live-reset-btn {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(20, 22, 28, 0.92);
+      border: 1px solid var(--border-focus);
+      backdrop-filter: blur(8px);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent-gold);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 10;
+    }
+    .live-reset-btn.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .live-reset-btn:hover {
+      background: var(--bg-surface-elevated);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .chart-scrubber-pill {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-focus);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--text-primary);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      white-space: nowrap;
+    }
+
+    /* Timeframe Selector */
+    .timeframe-bar {
+      display: flex;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 3px;
+    }
+
+    .tf-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 6px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .tf-btn.active {
+      background: var(--bg-surface-elevated);
+      color: var(--text-primary);
+      font-weight: 600;
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+    /* Asset Carousel */
+    .carousel-wrap {
+      overflow-x: auto;
+      scrollbar-width: none;
+      display: flex;
+      gap: 10px;
+      padding: 2px 0;
+    }
+
+    .carousel-wrap::-webkit-scrollbar {
+      display: none;
+    }
+
+    .asset-chip {
+      flex: 0 0 auto;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 110px;
+    }
+
+    .asset-chip.active {
+      border-color: rgba(255, 255, 255, 0.2);
+      background: var(--bg-surface-elevated);
+    }
+
+    .asset-chip-name {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 2px;
+    }
+
+    .asset-chip-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .asset-chip-sub {
+      font-size: 10.5px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Quantitative Matrix */
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .matrix-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .matrix-label {
+      font-size: 10.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .matrix-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .matrix-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* Macro & Sentiment Strip */
+    .two-col-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .strip-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .progress-bar-wrap {
+      width: 100%;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+
+    /* Tactical Playbook */
+    .playbook-text {
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: var(--text-secondary);
+      margin-bottom: 14px;
+    }
+
+    .playbook-text strong {
+      color: var(--text-primary);
+    }
+
+    .btn-action {
+      width: 100%;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-focus);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-action:hover, .btn-action:active {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Position Sizer Drawer */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translate(-50%, 100%);
+      width: 100%;
+      max-width: 480px;
+      background: #12141A;
+      border: 1px solid var(--border-focus);
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      padding: 24px 20px calc(env(safe-area-inset-bottom, 24px) + 20px) 20px;
+      z-index: 101;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .drawer.open {
+      transform: translate(-50%, 0%);
+    }
+
+    .drawer-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--border-focus);
+      border-radius: 999px;
+      margin: 0 auto 16px auto;
+    }
+
+    .drawer-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .drawer-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+
+    .input-group {
+      margin-bottom: 12px;
+    }
+
+    .input-label {
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .input-field {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      color: var(--text-primary);
+      outline: none;
+    }
+
+    .input-field:focus {
+      border-color: var(--text-primary);
+    }
+
+    select.input-field {
+      appearance: none;
+      -webkit-appearance: none;
+      background-color: #161922;
+      color: var(--text-primary);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    select.input-field option {
+      background-color: #14161C;
+      color: #F8FAFC;
+      padding: 10px;
+      font-size: 13px;
+    }
+
+    select.input-field option:hover,
+    select.input-field option:checked {
+      background-color: #1F232E;
+      color: var(--accent-gold);
+    }
+    .calc-result-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 14px;
+      margin: 14px 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .calc-row-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .calc-lbl {
+      font-size: 10.5px;
+      color: var(--text-secondary);
+    }
+
+    .calc-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  
+    /* Bottom Navigation Tab Bar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      background: rgba(18, 20, 26, 0.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 12px calc(env(safe-area-inset-bottom, 16px) + 8px) 12px;
+      z-index: 999;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 4px 14px;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn .tab-icon {
+      font-size: 18px;
+      transition: transform 0.2s ease;
+    }
+
+    .tab-btn.active {
+      color: var(--text-primary);
+    }
+
+    .tab-btn.active .tab-icon {
+      transform: scale(1.12);
+    }
+
+    .tab-btn .active-indicator {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--accent-gold);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .tab-btn.active .active-indicator {
+      opacity: 1;
+    }
+
+    /* Tab Page Views */
+    .tab-view {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+    }
+
+    .tab-view.active {
+      display: flex;
+    }
+
+    body {
+      padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 75px) !important;
+    }
+
+    /* Table styling for Overview */
+    .overview-table-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .overview-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: right;
+      font-size: 12px;
+    }
+
+    .overview-table th {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .overview-table th:first-child,
+    .overview-table td:first-child {
+      text-align: left;
+    }
+
+    .overview-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .overview-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .overview-table tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+      cursor: pointer;
+    }
+
+    /* Chat Tab Styling */
+    .chat-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      height: 480px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-right: 4px;
+      scrollbar-width: none;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chat-msg {
+      display: flex;
+      gap: 8px;
+      max-width: 88%;
+      line-height: 1.5;
+      font-size: 13px;
+    }
+
+    .chat-msg.lili {
+      align-self: flex-start;
+    }
+
+    .chat-msg.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .msg-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #F472B6, #818CF8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .msg-bubble {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 10px 14px;
+      color: var(--text-primary);
+    }
+
+    .chat-msg.user .msg-bubble {
+      background: rgba(212, 175, 55, 0.12);
+      border-color: rgba(212, 175, 55, 0.25);
+      color: #FFF;
+    }
+
+    .chat-input-bar {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 12px;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--text-primary);
+      outline: none;
+    }
+
+    .chat-send-btn {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-focus);
+      color: var(--accent-gold);
+      padding: 0 16px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .quick-prompts {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 4px 0;
+      margin-bottom: 6px;
+    }
+
+    .prompt-chip {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+</style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <div class="brand">
+        <div class="brand-avatar">🌸</div>
+        <div class="brand-title">Lili Quant</div>
+      </div>
+      <div class="top-pill">
+        <span class="dot"></span>
+        <span id="marketStatus">US Active</span>
+      </div>
+    </header>
+
+
+    <!-- TAB 1: CHART -->
+    <div class="tab-view active" id="view-chart">
+      <!-- Hero Asset Card -->
+      <main class="card">
+        <div class="hero-header">
+          <div>
+            <div class="asset-tag" id="assetTag">Gold • XAU/USD</div>
+            <div class="hero-price">
+              <span id="heroPrice">$4,163.30</span>
+              <span class="hero-change" id="heroChange" style="background: rgba(239, 68, 68, 0.1); color: var(--signal-sell);">-0.22%</span>
+            </div>
+          </div>
+          <div class="badge-signal badge-buy" id="heroBadge">
+            <span style="font-size: 9px;">●</span>
+            <span id="heroActionText">BUY DIP</span>
+          </div>
+        </div>
+
+        <!-- Interactive Chart Layer Toggles & Period Badge -->
+        <div class="chart-controls-row">
+          <div class="chart-controls">
+            <button class="layer-pill active" id="toggleSMA">
+              <span class="layer-dot" style="background: #38BDF8;"></span>
+              <span>50 SMA</span>
+            </button>
+            <button class="layer-pill active" id="toggleLevels">
+              <span class="layer-dot" style="background: #D4AF37;"></span>
+              <span>Key Levels</span>
+            </button>
+            <button class="layer-pill active" id="toggleSignals">
+              <span class="layer-dot" style="background: #34D399;"></span>
+              <span>Signals</span>
+            </button>
+          </div>
+          <span class="period-badge" id="periodBadge">Jul 01 — Today</span>
+        </div>
+
+        <!-- Clean Spline Vector Chart with Rich Technical Markers -->
+        <div class="chart-container">
+          <div class="chart-scrubber-pill" id="scrubberPill">$4,163.30 • Sep 29</div>
+          <div class="live-reset-btn" id="liveResetBtn">◀ History • Return to Live ❯</div>
+          <canvas id="chartCanvas"></canvas>
+        </div>
+
+        <!-- Timeframe Switcher -->
+        <div class="timeframe-bar">
+          <button class="tf-btn" data-tf="1D">1D</button>
+          <button class="tf-btn" data-tf="1W">1W</button>
+          <button class="tf-btn" data-tf="1M">1M</button>
+          <button class="tf-btn active" data-tf="3M">3M</button>
+          <button class="tf-btn" data-tf="1Y">1Y</button>
+        </div>
+      </main>
+
+      <!-- Asset Carousel -->
+      <div>
+        <div class="section-title">Asset Radar</div>
+        <div class="carousel-wrap" id="assetCarousel"></div>
+      </div>
+
+      <!-- Quantitative Matrix -->
+      <div>
+        <div class="section-title">Quantitative Matrix</div>
+        <div class="matrix-grid">
+          <div class="matrix-card">
+            <div class="matrix-label">RSI (14)</div>
+            <div class="matrix-val" id="valRsi" style="color: var(--signal-buy);">22.0</div>
+            <div class="matrix-sub" id="subRsi">Deeply Oversold</div>
+          </div>
+          <div class="matrix-card">
+            <div class="matrix-label">50-Day SMA</div>
+            <div class="matrix-val" id="valSma">$4,360</div>
+            <div class="matrix-sub" id="subSma">-4.5% below</div>
+          </div>
+          <div class="matrix-card">
+            <div class="matrix-label">Bollinger %B</div>
+            <div class="matrix-val" id="valPctB">0.08</div>
+            <div class="matrix-sub" id="subPctB">Lower Band</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tactical Playbook Card -->
+      <div class="card">
+        <div class="section-title" style="margin-bottom: 6px;">Lili's Tactical Playbook</div>
+        <p class="playbook-text" id="playbookText">
+          Gold is testing critical multi-week structural support at <strong>$4,150</strong> with an oversold RSI of <strong>22.0</strong>. This represents a classic institutional accumulation window. Maintain disciplined stop-losses at <strong>$4,145</strong>.
+        </p>
+      </div>
+    </div>
+
+
+    <!-- TAB 2: OVERVIEW -->
+    <div class="tab-view" id="view-overview">
+      <div class="two-col-strip">
+        <div class="strip-card">
+          <div class="matrix-label">Crypto Sentiment</div>
+          <div class="matrix-val" style="color: var(--signal-hold);">73 <span style="font-size: 12px; font-weight: 400; color: var(--text-secondary);">/ 100</span></div>
+          <div class="matrix-sub">Greed Regime</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" style="width: 73%; background: var(--signal-hold);"></div>
+          </div>
+        </div>
+
+        <div class="strip-card">
+          <div class="matrix-label">Upcoming Catalyst</div>
+          <div class="matrix-val" style="color: var(--signal-sell); font-size: 13.5px;">US NFP Jobs</div>
+          <div class="matrix-sub">In 3 Days • High Volatility</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" style="width: 85%; background: var(--signal-sell);"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overview Securities Table -->
+      <div>
+        <div class="section-title">Multi-Asset Intelligence</div>
+        <div class="overview-table-card">
+          <table class="overview-table">
+            <thead>
+              <tr>
+                <th>Asset</th>
+                <th>Price</th>
+                <th>1D %</th>
+                <th>RSI</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="overviewTableBody">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Macro Timeline Card -->
+      <div class="card">
+        <div class="section-title">Macro Catalyst Calendar</div>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 6px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">
+            <div>
+              <div style="font-size: 13px; font-weight: 600;">US Non-Farm Payrolls (NFP)</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Labor Market & Wage Data</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 12px; font-weight: 600; color: var(--signal-sell);">🚨 In 3 Days</div>
+              <div style="font-size: 10.5px; color: var(--text-secondary);">2026-10-02</div>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">
+            <div>
+              <div style="font-size: 13px; font-weight: 600;">US CPI Inflation Report</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Consumer Price Index</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 12px; font-weight: 500; color: var(--text-primary);">in 15 Days</div>
+              <div style="font-size: 10.5px; color: var(--text-secondary);">2026-10-14</div>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 13px; font-weight: 600;">FOMC Rate Decision</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Federal Reserve Policy</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 12px; font-weight: 500; color: var(--text-primary);">in 37 Days</div>
+              <div style="font-size: 10.5px; color: var(--text-secondary);">2026-11-05</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- TAB 3: RISK SIZER -->
+    <div class="tab-view" id="view-risk">
+      <div class="card">
+        <div class="hero-header">
+          <div>
+            <div class="asset-tag">Position Sizer</div>
+            <div style="font-size: 18px; font-weight: 600;">1% Capital Preservation Model</div>
+          </div>
+          <div class="badge-signal badge-buy" style="font-size: 11px;">R:R Protected</div>
+        </div>
+
+        <div class="input-group">
+          <div class="input-label"><span>Asset Selected</span><span id="riskAssetSymbol">XAU/USD (Gold)</span></div>
+          <select class="input-field" id="riskAssetSelect" style="cursor: pointer;">
+            <option value="gold">Gold (XAU/USD)</option>
+            <option value="silver">Silver (XAG/USD)</option>
+            <option value="btc">Bitcoin (BTC/USD)</option>
+            <option value="eth">Ethereum (ETH/USD)</option>
+            <option value="sol">Solana (SOL/USD)</option>
+            <option value="spy">S&P 500 (SPY)</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <div class="input-label"><span>Entry Price ($)</span><span id="riskEntryLabel">Live Market</span></div>
+          <input type="number" class="input-field" id="riskInputEntry" value="4163.30" step="0.1">
+        </div>
+
+        <div class="input-group">
+          <div class="input-label"><span>Stop Loss ($)</span><span id="riskStopPct" style="color: var(--signal-sell);">-0.44%</span></div>
+          <input type="number" class="input-field" id="riskInputStop" value="4145.00" step="0.1">
+        </div>
+
+        <div class="input-group">
+          <div class="input-label"><span>Profit Target ($)</span><span id="riskTargetPct" style="color: var(--signal-buy);">+1.48%</span></div>
+          <input type="number" class="input-field" id="riskInputTarget" value="4225.00" step="0.1">
+        </div>
+
+        <div class="input-group">
+          <div class="input-label"><span>Max Capital at Risk ($)</span><span id="riskBalanceLabel">1% of $15,000</span></div>
+          <input type="number" class="input-field" id="riskInputRisk" value="150" step="10">
+        </div>
+
+        <div class="calc-result-box">
+          <div class="calc-row-item">
+            <span class="calc-lbl">Units to Trade</span>
+            <span class="calc-val" id="riskCalcUnits" style="color: var(--accent-gold);">8.196 oz</span>
+          </div>
+          <div class="calc-row-item">
+            <span class="calc-lbl">Position Notional</span>
+            <span class="calc-val" id="riskCalcNotional">$34,124</span>
+          </div>
+          <div class="calc-row-item">
+            <span class="calc-lbl">Potential Profit</span>
+            <span class="calc-val" id="riskCalcReward" style="color: var(--signal-buy);">+$505.70</span>
+          </div>
+          <div class="calc-row-item">
+            <span class="calc-lbl">Risk/Reward</span>
+            <span class="calc-val" id="riskCalcRR" style="color: var(--signal-buy);">1 : 3.37 ★</span>
+          </div>
+        </div>
+
+        <div style="font-size: 11px; color: var(--text-muted); line-height: 1.5; margin-top: 4px;">
+          💡 <b>Quant Rule:</b> If your stop loss is hit, you only lose <strong>$150</strong> (1% of balance). Never risk more than 2% per setup.
+        </div>
+      </div>
+    </div>
+
+
+    <!-- TAB 4: LILI CHAT -->
+    <div class="tab-view" id="view-lili">
+      <div class="chat-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 10px; margin-bottom: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="brand-avatar">🌸</div>
+            <div>
+              <div style="font-size: 13px; font-weight: 600;">Lili AI Advisor</div>
+              <div style="font-size: 10.5px; color: var(--signal-buy);">● Online • Live Metrics Active</div>
+            </div>
+          </div>
+          <div class="period-badge">Gemini 3.5</div>
+        </div>
+
+        <!-- Quick Prompts Strip -->
+        <div class="quick-prompts">
+          <div class="prompt-chip" onclick="askLiliPrompt('Should I buy Gold right now?')">Should I buy Gold?</div>
+          <div class="prompt-chip" onclick="askLiliPrompt('How is Solana looking today?')">How is Solana looking?</div>
+          <div class="prompt-chip" onclick="askLiliPrompt('Give me a risk breakdown for Bitcoin')">Bitcoin risk breakdown</div>
+        </div>
+
+        <!-- Messages Box -->
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-msg lili">
+            <div class="msg-avatar">🌸</div>
+            <div class="msg-bubble">
+              Morning Borin! ☕✨ I'm monitoring Gold ($4,163), Crypto (BTC $83k, SOL $117), and Friday's upcoming NFP print. What setup are we analyzing today?
+            </div>
+          </div>
+        </div>
+
+        <!-- Input Bar -->
+        <div class="chat-input-bar">
+          <input type="text" class="chat-input" id="chatInput" placeholder="Ask your quant wifey anything...">
+          <button class="chat-send-btn" id="chatSendBtn">Send</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- Bottom Persistent Tab Bar -->
+  <nav class="bottom-nav">
+    <button class="tab-btn active" data-target="view-chart">
+      <span class="tab-icon">📈</span>
+      <span>Chart</span>
+      <span class="active-indicator"></span>
+    </button>
+    <button class="tab-btn" data-target="view-overview">
+      <span class="tab-icon">📊</span>
+      <span>Overview</span>
+      <span class="active-indicator"></span>
+    </button>
+    <button class="tab-btn" data-target="view-risk">
+      <span class="tab-icon">⚖️</span>
+      <span>Risk</span>
+      <span class="active-indicator"></span>
+    </button>
+    <button class="tab-btn" data-target="view-lili">
+      <span class="tab-icon">🌸</span>
+      <span>Lili</span>
+      <span class="active-indicator"></span>
+    </button>
+  </nav>
+
+<script>
+    // High-Density Deterministic Timeframe Generator
+    function buildTimeframe(base, end, count, peak, trough, changeStr, isDown, unit, unitStep) {
+      const pts = [];
+      const lbls = [];
+      const now = new Date(2026, 8, 29, 14, 0); // Sep 29, 2026
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+      for (let i = 0; i < count; i++) {
+        const t = i / (count - 1);
+        let v = base + (end - base) * t;
+        v += peak * Math.sin(t * Math.PI * 0.85);
+        v += trough * Math.sin(t * Math.PI * 1.7);
+        const noise = (Math.sin(i * 1.7) * 0.35 + Math.cos(i * 3.1) * 0.25) * Math.abs(peak + trough) * 0.12;
+        pts.push(Math.round((v + noise) * 100) / 100);
+      }
+      pts[pts.length - 1] = end;
+
+      for (let i = count - 1; i >= 0; i--) {
+        const d = new Date(now);
+        if (unit === 'hour') d.setHours(d.getHours() - i * unitStep);
+        else if (unit === 'day') d.setDate(d.getDate() - i * unitStep);
+        else if (unit === 'week') d.setDate(d.getDate() - i * 7);
+
+        if (unit === 'hour') {
+          const h = String(d.getHours()).padStart(2, '0');
+          lbls.push(i === 0 ? "Now" : `${h}:00`);
+        } else {
+          lbls.push(i === 0 ? "Today" : `${monthNames[d.getMonth()]} ${d.getDate()}`);
+        }
+      }
+
+      return { points: pts, labels: lbls, change: changeStr, isDown: isDown };
+    }
+
+    // Asset Dataset
+    const ASSETS = {
+      gold: {
+        id: "gold",
+        name: "Gold",
+        symbol: "XAU/USD",
+        tag: "Precious Metals • XAU/USD",
+        price: 4163.30,
+        action: "BUY",
+        actionText: "BUY DIP",
+        rsi: 22.0,
+        rsiSub: "Deeply Oversold",
+        sma: "$4,360",
+        smaSub: "-4.5% below",
+        pctB: "0.08",
+        pctBSub: "Lower Band",
+        color: "#D4AF37",
+        playbook: "Gold is testing critical multi-week structural support at <strong>$4,150</strong> with an oversold RSI of <strong>22.0</strong>. This represents a classic institutional accumulation window. Maintain disciplined stop-losses at <strong>$4,145</strong>.",
+        support: 4150.0,
+        resistance: 4350.0,
+        smaValue: 4360.40,
+        entryDefault: 4163.30,
+        stopDefault: 4145.00,
+        targetDefault: 4225.00,
+        unitLabel: "oz",
+        timeframes: {
+          "1D": buildTimeframe(4174.5, 4163.30, 36, 12, -22, "-0.22%", true, "hour", 1),
+          "1W": buildTimeframe(4320.0, 4163.30, 40, 35, -170, "-3.65%", true, "hour", 4),
+          "1M": buildTimeframe(4520.0, 4163.30, 45, 95, -340, "-6.92%", true, "day", 1),
+          "3M": buildTimeframe(4020.0, 4163.30, 50, 550, -180, "+3.84%", false, "day", 2),
+          "1Y": buildTimeframe(3350.0, 4163.30, 52, 980, -220, "+26.15%", false, "week", 1)
+        }
+      },
+      btc: {
+        id: "btc",
+        name: "Bitcoin",
+        symbol: "BTC/USD",
+        tag: "Digital Asset • BTC/USD",
+        price: 83196.00,
+        action: "HOLD",
+        actionText: "HOLD COMPOUND",
+        rsi: 64.0,
+        rsiSub: "Constructive Bull",
+        sma: "$78,420",
+        smaSub: "+6.1% above",
+        pctB: "0.72",
+        pctBSub: "Mid-Upper Band",
+        color: "#F7931A",
+        playbook: "Bitcoin is consolidating smoothly above its 50-day moving average (<strong>$78,420</strong>). Trend structure remains bullish, but with Greed at 73, wait for lower-range tests rather than chasing tops.",
+        support: 81200.0,
+        resistance: 86500.0,
+        smaValue: 78420.0,
+        entryDefault: 83196.00,
+        stopDefault: 81200.00,
+        targetDefault: 88500.00,
+        unitLabel: "BTC",
+        timeframes: {
+          "1D": buildTimeframe(84380, 83196, 36, 650, -1450, "-1.40%", true, "hour", 1),
+          "1W": buildTimeframe(85990, 83196, 40, 950, -3200, "-3.25%", true, "hour", 4),
+          "1M": buildTimeframe(79100, 83196, 45, 7500, -2100, "+5.18%", false, "day", 1),
+          "3M": buildTimeframe(70700, 83196, 50, 15500, -3500, "+17.65%", false, "day", 2),
+          "1Y": buildTimeframe(49400, 83196, 52, 38000, -8000, "+68.40%", false, "week", 1)
+        }
+      },
+      eth: {
+        id: "eth",
+        name: "Ethereum",
+        symbol: "ETH/USD",
+        tag: "Smart Contract • ETH/USD",
+        price: 2669.40,
+        action: "HOLD",
+        actionText: "HOLD TREND",
+        rsi: 62.5,
+        rsiSub: "Steady Accumulation",
+        sma: "$2,580",
+        smaSub: "+3.4% above",
+        pctB: "0.64",
+        pctBSub: "Mid Band",
+        color: "#627EEA",
+        playbook: "Ethereum is holding steady support at <strong>$2,640</strong>. Staking yield dynamics are buffering downward liquidity flushes. Key resistance is at <strong>$2,820</strong>.",
+        support: 2590.0,
+        resistance: 2820.0,
+        smaValue: 2580.0,
+        entryDefault: 2669.40,
+        stopDefault: 2590.00,
+        targetDefault: 2840.00,
+        unitLabel: "ETH",
+        timeframes: {
+          "1D": buildTimeframe(2686, 2669.40, 36, 22, -35, "-0.62%", true, "hour", 1),
+          "1W": buildTimeframe(2748, 2669.40, 40, 45, -110, "-2.85%", true, "hour", 4),
+          "1M": buildTimeframe(2564, 2669.40, 45, 240, -85, "+4.12%", false, "day", 1),
+          "3M": buildTimeframe(2375, 2669.40, 50, 450, -120, "+12.40%", false, "day", 2),
+          "1Y": buildTimeframe(1980, 2669.40, 52, 960, -210, "+34.80%", false, "week", 1)
+        }
+      },
+      sol: {
+        id: "sol",
+        name: "Solana",
+        symbol: "SOL/USD",
+        tag: "High-Beta Layer 1 • SOL/USD",
+        price: 117.71,
+        action: "HOLD",
+        actionText: "HOLD CONSOLIDATION",
+        rsi: 48.2,
+        rsiSub: "Neutral Zone",
+        sma: "$99.46",
+        smaSub: "+18.3% above",
+        pctB: "0.52",
+        pctBSub: "Mid Band",
+        color: "#14F195",
+        playbook: "Solana is digesting recent high-beta gains. It remains safely above its 50-day SMA at <strong>$99.46</strong>. Healthy consolidation; avoid impulsive market orders.",
+        support: 112.00,
+        resistance: 135.00,
+        smaValue: 99.46,
+        entryDefault: 117.71,
+        stopDefault: 112.00,
+        targetDefault: 135.00,
+        unitLabel: "SOL",
+        timeframes: {
+          "1D": buildTimeframe(122.05, 117.71, 36, 2.5, -5.8, "-3.56%", true, "hour", 1),
+          "1W": buildTimeframe(127.20, 117.71, 40, 3.8, -12.5, "-7.45%", true, "hour", 4),
+          "1M": buildTimeframe(108.10, 117.71, 45, 28.5, -9.5, "+8.90%", false, "day", 1),
+          "3M": buildTimeframe(91.60, 117.71, 50, 48.0, -12.0, "+28.50%", false, "day", 2),
+          "1Y": buildTimeframe(54.90, 117.71, 52, 88.0, -14.0, "+114.20%", false, "week", 1)
+        }
+      },
+      silver: {
+        id: "silver",
+        name: "Silver",
+        symbol: "XAG/USD",
+        tag: "Precious Metals • XAG/USD",
+        price: 60.85,
+        action: "BUY",
+        actionText: "BUY DIP",
+        rsi: 27.9,
+        rsiSub: "Oversold Support",
+        sma: "$64.20",
+        smaSub: "-5.2% below",
+        pctB: "0.12",
+        pctBSub: "Lower Band",
+        color: "#E2E8F0",
+        playbook: "Silver mirrored Gold into deep oversold territory (RSI <strong>27.9</strong>). Strong industrial demand and supply tightness offer favorable swing asymmetry.",
+        support: 59.20,
+        resistance: 64.50,
+        smaValue: 64.20,
+        entryDefault: 60.85,
+        stopDefault: 59.20,
+        targetDefault: 64.50,
+        unitLabel: "oz",
+        timeframes: {
+          "1D": buildTimeframe(61.30, 60.85, 36, 0.45, -0.95, "-0.74%", true, "hour", 1),
+          "1W": buildTimeframe(63.25, 60.85, 40, 0.85, -2.85, "-3.80%", true, "hour", 4),
+          "1M": buildTimeframe(64.60, 60.85, 45, 3.20, -4.50, "-5.85%", true, "day", 1),
+          "3M": buildTimeframe(57.30, 60.85, 50, 9.80, -2.20, "+6.20%", false, "day", 2),
+          "1Y": buildTimeframe(43.90, 60.85, 52, 23.50, -4.80, "+38.40%", false, "week", 1)
+        }
+      },
+      spy: {
+        id: "spy",
+        name: "S&P 500",
+        symbol: "SPY",
+        tag: "US Equities Benchmark • SPY",
+        price: 765.61,
+        action: "HOLD",
+        actionText: "HOLD MARKET",
+        rsi: 49.7,
+        rsiSub: "Balanced Index",
+        sma: "$752.10",
+        smaSub: "+1.8% above",
+        pctB: "0.48",
+        pctBSub: "Equilibrium",
+        color: "#38BDF8",
+        playbook: "US benchmark equities are pausing ahead of Friday's Non-Farm Payrolls (NFP). Institutional liquidity is cautious but macro balance remains constructive.",
+        support: 755.00,
+        resistance: 780.00,
+        smaValue: 752.10,
+        entryDefault: 765.61,
+        stopDefault: 755.00,
+        targetDefault: 785.00,
+        unitLabel: "shares",
+        timeframes: {
+          "1D": buildTimeframe(771.30, 765.61, 36, 3.5, -7.8, "-0.74%", true, "hour", 1),
+          "1W": buildTimeframe(776.10, 765.61, 40, 4.2, -12.5, "-1.35%", true, "hour", 4),
+          "1M": buildTimeframe(750.90, 765.61, 45, 24.5, -8.2, "+1.95%", false, "day", 1),
+          "3M": buildTimeframe(716.80, 765.61, 50, 58.0, -12.5, "+6.80%", false, "day", 2),
+          "1Y": buildTimeframe(615.80, 765.61, 52, 148.0, -25.0, "+24.30%", false, "week", 1)
+        }
+      }
+    };
+
+    // State Variables
+    let activeAssetKey = "gold";
+    let activeTimeframe = "3M";
+    let visiblePointsCount = 18;
+    let scrollOffset = 0; // 0 = latest live data on right, >0 = history
+
+    let showSMA = true;
+    let showLevels = true;
+    let showSignals = true;
+
+    // Telegram Haptic Feedback
+    function triggerHaptic(type = "selection") {
+      try {
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+          if (type === "selection") {
+            window.Telegram.WebApp.HapticFeedback.selectionChanged();
+          } else if (type === "impact") {
+            window.Telegram.WebApp.HapticFeedback.impactOccurred("medium");
+          }
+        }
+      } catch (e) {}
+    }
+
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+    }
+
+    // Layer Controls
+    document.getElementById("toggleSMA").onclick = (e) => {
+      showSMA = __omp_shell("showSMA;")
+      e.currentTarget.classList.toggle("active", showSMA);
+      triggerHaptic("selection");
+      drawChart();
+    };
+
+    document.getElementById("toggleLevels").onclick = (e) => {
+      showLevels = __omp_shell("showLevels;")
+      e.currentTarget.classList.toggle("active", showLevels);
+      triggerHaptic("selection");
+      drawChart();
+    };
+
+    document.getElementById("toggleSignals").onclick = (e) => {
+      showSignals = __omp_shell("showSignals;")
+      e.currentTarget.classList.toggle("active", showSignals);
+      triggerHaptic("selection");
+      drawChart();
+    };
+
+    // Render Asset Carousel
+    const carouselEl = document.getElementById("assetCarousel");
+    function renderCarousel() {
+      carouselEl.innerHTML = "";
+      Object.keys(ASSETS).forEach(key => {
+        const a = ASSETS[key];
+        const chip = document.createElement("div");
+        chip.className = `asset-chip ${key === activeAssetKey ? "active" : ""}`;
+        chip.onclick = () => selectAsset(key);
+        
+        const actionDotColor = a.action === "BUY" ? "var(--signal-buy)" : a.action === "HOLD" ? "var(--signal-hold)" : "var(--signal-sell)";
+        const tfData = a.timeframes[activeTimeframe] || a.timeframes["3M"];
+
+        chip.innerHTML = `
+          <div class="asset-chip-name">${a.name}</div>
+          <div class="asset-chip-price">$${a.price >= 1000 ? a.price.toLocaleString('en-US', {maximumFractionDigits:0}) : a.price.toFixed(2)}</div>
+          <div class="asset-chip-sub">
+            <span style="color: ${actionDotColor};">●</span>
+            <span style="color: ${tfData.isDown ? 'var(--signal-sell)' : 'var(--signal-buy)'};">${tfData.change}</span>
+          </div>
+        `;
+        carouselEl.appendChild(chip);
+      });
+    }
+
+    function selectAsset(key) {
+      activeAssetKey = key;
+      scrollOffset = 0; // reset to live
+      triggerHaptic("selection");
+      updateUI();
+      renderCarousel();
+      drawChart();
+    }
+
+    // Update Main UI based on active asset
+    function updateUI() {
+      const a = ASSETS[activeAssetKey];
+      const tfData = a.timeframes[activeTimeframe] || a.timeframes["3M"];
+      
+      document.getElementById("assetTag").innerText = a.tag;
+      document.getElementById("heroPrice").innerText = `$${a.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      
+      const changeEl = document.getElementById("heroChange");
+      changeEl.innerText = `${tfData.change} (${activeTimeframe})`;
+      changeEl.style.color = tfData.isDown ? "var(--signal-sell)" : "var(--signal-buy)";
+      changeEl.style.background = tfData.isDown ? "rgba(251, 113, 133, 0.1)" : "rgba(52, 211, 153, 0.1)";
+
+      const badgeEl = document.getElementById("heroBadge");
+      badgeEl.className = `badge-signal badge-${a.action.toLowerCase()}`;
+      document.getElementById("heroActionText").innerText = a.actionText;
+
+      document.getElementById("valRsi").innerText = a.rsi.toFixed(1);
+      document.getElementById("valRsi").style.color = a.rsi <= 35 ? "var(--signal-buy)" : a.rsi >= 70 ? "var(--signal-sell)" : "var(--text-primary)";
+      document.getElementById("subRsi").innerText = a.rsiSub;
+
+      document.getElementById("valSma").innerText = a.sma;
+      document.getElementById("subSma").innerText = a.smaSub;
+
+      document.getElementById("valPctB").innerText = a.pctB;
+      document.getElementById("subPctB").innerText = a.pctBSub;
+
+      document.getElementById("playbookText").innerHTML = a.playbook;
+
+      // Tab 3 handles risk inputs via updateRiskTab()
+      
+    }
+
+    // Canvas Chart Renderer (Feathered Spline Curve + Panning Viewport)
+    const canvas = document.getElementById("chartCanvas");
+    const ctx = canvas.getContext("2d");
+    let chartPoints = [];
+
+    function setupCanvasDPI() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+
+    function drawChart(highlightIndex = null) {
+      setupCanvasDPI();
+      const a = ASSETS[activeAssetKey];
+      const tfData = a.timeframes[activeTimeframe] || a.timeframes["3M"];
+      const fullPoints = tfData.points;
+      const fullLabels = tfData.labels || [];
+      const totalCount = fullPoints.length;
+
+      // Calculate sliding viewport window based on scrollOffset
+      const winSize = Math.min(visiblePointsCount, totalCount);
+      const maxOffset = Math.max(0, totalCount - winSize);
+      scrollOffset = Math.max(0, Math.min(maxOffset, scrollOffset));
+
+      const startIndex = totalCount - winSize - scrollOffset;
+      const endIndex = startIndex + winSize;
+
+      const data = fullPoints.slice(startIndex, endIndex);
+      const labels = fullLabels.slice(startIndex, endIndex);
+
+      // Update Period Range Badge
+      const periodBadge = document.getElementById("periodBadge");
+      if (periodBadge && labels.length) {
+        periodBadge.innerText = `${labels[0]} — ${labels[labels.length - 1]}`;
+      }
+      const w = canvas.width / (window.devicePixelRatio || 1);
+      const h = canvas.height / (window.devicePixelRatio || 1);
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Reset-to-live button visibility
+      const liveBtn = document.getElementById("liveResetBtn");
+      if (liveBtn) {
+        if (scrollOffset > 0) {
+          liveBtn.classList.add("visible");
+          liveBtn.innerText = `◀ History (-${scrollOffset} bars) • Return to Live ❯`;
+        } else {
+          liveBtn.classList.remove("visible");
+        }
+      }
+
+      const paddingLeft = 14;
+      const paddingRight = 62;
+      const paddingTop = 22;
+      const paddingBottom = 26;
+
+      const minVal = Math.min(...data) * 0.994;
+      const maxVal = Math.max(...data) * 1.006;
+      const range = maxVal - minVal || 1;
+
+      function valToY(v) {
+        return h - paddingBottom - ((v - minVal) / range) * (h - paddingTop - paddingBottom);
+      }
+
+      // 1. Background Price Grid with Y-Axis Benchmark Numbers
+      const gridLevels = 3;
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      ctx.font = "9.5px 'JetBrains Mono', monospace";
+
+      for (let i = 1; i <= gridLevels; i++) {
+        const ratio = i / (gridLevels + 1);
+        const yGrid = paddingTop + ratio * (h - paddingTop - paddingBottom);
+        const pGrid = maxVal - ratio * range;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([2, 5]);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
+        ctx.lineWidth = 1;
+        ctx.moveTo(paddingLeft, yGrid);
+        ctx.lineTo(w - paddingRight + 4, yGrid);
+        ctx.stroke();
+
+        ctx.fillStyle = "rgba(148, 163, 184, 0.45)";
+        const pText = pGrid >= 1000 ? `$${pGrid.toLocaleString('en-US', {maximumFractionDigits: 0})}` : `$${pGrid.toFixed(2)}`;
+        ctx.fillText(pText, w - 8, yGrid);
+        ctx.restore();
+      }
+
+      // Map data points
+      chartPoints = data.map((val, idx) => {
+        const x = paddingLeft + (idx / (data.length - 1)) * (w - paddingLeft - paddingRight);
+        const y = valToY(val);
+        return { x, y, val };
+      });
+
+      // 2. Key Levels (Support & Resistance Lines)
+      if (showLevels && a.support && a.resistance) {
+        if (a.support >= minVal * 0.98 && a.support <= maxVal * 1.02) {
+          const ySupp = valToY(a.support);
+          ctx.save();
+          ctx.setLineDash([3, 4]);
+          ctx.strokeStyle = "rgba(52, 211, 153, 0.5)";
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(paddingLeft, ySupp);
+          ctx.lineTo(w - paddingRight + 4, ySupp);
+          ctx.stroke();
+
+          ctx.fillStyle = "rgba(52, 211, 153, 0.14)";
+          ctx.fillRect(paddingLeft + 4, ySupp - 8, 86, 15);
+          ctx.strokeStyle = "rgba(52, 211, 153, 0.35)";
+          ctx.strokeRect(paddingLeft + 4, ySupp - 8, 86, 15);
+          ctx.fillStyle = "#34D399";
+          ctx.font = "bold 9px 'JetBrains Mono', monospace";
+          ctx.textAlign = "left";
+          ctx.fillText(`SUPP $${a.support >= 1000 ? a.support.toLocaleString('en-US') : a.support.toFixed(2)}`, paddingLeft + 8, ySupp);
+          ctx.restore();
+        }
+
+        if (a.resistance >= minVal * 0.98 && a.resistance <= maxVal * 1.02) {
+          const yRes = valToY(a.resistance);
+          ctx.save();
+          ctx.setLineDash([3, 4]);
+          ctx.strokeStyle = "rgba(212, 175, 55, 0.5)";
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(paddingLeft, yRes);
+          ctx.lineTo(w - paddingRight + 4, yRes);
+          ctx.stroke();
+
+          ctx.fillStyle = "rgba(212, 175, 55, 0.14)";
+          ctx.fillRect(paddingLeft + 4, yRes - 8, 82, 15);
+          ctx.strokeStyle = "rgba(212, 175, 55, 0.35)";
+          ctx.strokeRect(paddingLeft + 4, yRes - 8, 82, 15);
+          ctx.fillStyle = "#D4AF37";
+          ctx.font = "bold 9px 'JetBrains Mono', monospace";
+          ctx.textAlign = "left";
+          ctx.fillText(`RES $${a.resistance >= 1000 ? a.resistance.toLocaleString('en-US') : a.resistance.toFixed(2)}`, paddingLeft + 8, yRes);
+          ctx.restore();
+        }
+      }
+
+      // 3. Smooth Feathered Gradient Area
+      const gradFill = ctx.createLinearGradient(0, paddingTop, 0, h);
+      const hex = a.color;
+      gradFill.addColorStop(0, hex + "2E");
+      gradFill.addColorStop(0.7, hex + "08");
+      gradFill.addColorStop(1, hex + "00");
+
+      ctx.beginPath();
+      ctx.moveTo(chartPoints[0].x, h - paddingBottom);
+      ctx.lineTo(chartPoints[0].x, chartPoints[0].y);
+      for (let i = 0; i < chartPoints.length - 1; i++) {
+        const p0 = chartPoints[i];
+        const p1 = chartPoints[i + 1];
+        const midX = (p0.x + p1.x) / 2;
+        ctx.bezierCurveTo(midX, p0.y, midX, p1.y, p1.x, p1.y);
+      }
+      ctx.lineTo(chartPoints[chartPoints.length - 1].x, h - paddingBottom);
+      ctx.closePath();
+      ctx.fillStyle = gradFill;
+      ctx.fill();
+
+      // 4. 50-SMA Overlay line (when showSMA is true)
+      if (showSMA) {
+        ctx.save();
+        ctx.beginPath();
+        for (let i = 0; i < chartPoints.length; i++) {
+          const pt = chartPoints[i];
+          const smaOffset = (a.smaValue ? (valToY(a.smaValue) - pt.y) * 0.4 : -6);
+          const ySma = pt.y + smaOffset;
+          if (i === 0) ctx.moveTo(pt.x, ySma);
+          else {
+            const prev = chartPoints[i - 1];
+            const prevSma = prev.y + (a.smaValue ? (valToY(a.smaValue) - prev.y) * 0.4 : -6);
+            const midX = (prev.x + pt.x) / 2;
+            ctx.bezierCurveTo(midX, prevSma, midX, ySma, pt.x, ySma);
+          }
+        }
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.75)";
+        ctx.lineWidth = 1.4;
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+
+        const lastPt = chartPoints[chartPoints.length - 1];
+        const lastSmaY = lastPt.y + (a.smaValue ? (valToY(a.smaValue) - lastPt.y) * 0.4 : -6);
+        ctx.fillStyle = "#38BDF8";
+        ctx.font = "bold 9px 'JetBrains Mono', monospace";
+        ctx.textAlign = "left";
+        ctx.fillText("50 SMA", lastPt.x + 4, lastSmaY);
+        ctx.restore();
+      }
+
+      // 5. Draw Primary Spline Stroke Line
+      ctx.beginPath();
+      ctx.moveTo(chartPoints[0].x, chartPoints[0].y);
+      for (let i = 0; i < chartPoints.length - 1; i++) {
+        const p0 = chartPoints[i];
+        const p1 = chartPoints[i + 1];
+        const midX = (p0.x + p1.x) / 2;
+        ctx.bezierCurveTo(midX, p0.y, midX, p1.y, p1.x, p1.y);
+      }
+      ctx.strokeStyle = hex;
+      ctx.lineWidth = 2.4;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.stroke();
+
+      // 6. High & Low Extremes Labels
+      let maxIdx = 0, minIdx = 0;
+      data.forEach((v, idx) => {
+        if (v > data[maxIdx]) maxIdx = idx;
+        if (v < data[minIdx]) minIdx = idx;
+      });
+
+      const ptHigh = chartPoints[maxIdx];
+      const ptLow = chartPoints[minIdx];
+
+      ctx.save();
+      ctx.font = "bold 9px 'JetBrains Mono', monospace";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      const hText = `▲ HIGH ${ptHigh.val >= 1000 ? Math.round(ptHigh.val).toLocaleString() : ptHigh.val.toFixed(2)}`;
+      ctx.fillText(hText, ptHigh.x, Math.max(14, ptHigh.y - 8));
+
+      const lText = `▼ LOW ${ptLow.val >= 1000 ? Math.round(ptLow.val).toLocaleString() : ptLow.val.toFixed(2)}`;
+      ctx.fillText(lText, ptLow.x, Math.min(h - 6, ptLow.y + 14));
+      ctx.restore();
+
+      // 7. Signal Callout Markers (when showSignals is true)
+      if (showSignals) {
+        ctx.save();
+        if (a.action === "BUY") {
+          const bx = ptLow.x;
+          const by = Math.min(h - 18, ptLow.y + 12);
+          ctx.fillStyle = "#064E3B";
+          ctx.fillRect(bx - 36, by - 7, 72, 16);
+          ctx.strokeStyle = "#34D399";
+          ctx.strokeRect(bx - 36, by - 7, 72, 16);
+          ctx.fillStyle = "#34D399";
+          ctx.font = "bold 9px 'JetBrains Mono', monospace";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("🟢 BUY DIP", bx, by + 1);
+        } else if (a.action === "HOLD") {
+          const midPoint = chartPoints[Math.floor(chartPoints.length / 2)];
+          const bx = midPoint.x;
+          const by = Math.max(20, midPoint.y - 12);
+          ctx.fillStyle = "#451A03";
+          ctx.fillRect(bx - 38, by - 8, 76, 16);
+          ctx.strokeStyle = "#FBBF24";
+          ctx.strokeRect(bx - 38, by - 8, 76, 16);
+          ctx.fillStyle = "#FBBF24";
+          ctx.font = "bold 9px 'JetBrains Mono', monospace";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("🟡 COMPOUND", bx, by);
+        }
+        ctx.restore();
+      }
+
+      // 8. Live Price Beacon & Right Callout
+      const pLast = chartPoints[chartPoints.length - 1];
+      ctx.save();
+      ctx.setLineDash([2, 3]);
+      ctx.strokeStyle = hex;
+      ctx.beginPath();
+      ctx.moveTo(pLast.x, pLast.y);
+      ctx.lineTo(w - 6, pLast.y);
+      ctx.stroke();
+
+      ctx.fillStyle = hex;
+      ctx.fillRect(w - 56, pLast.y - 8, 54, 16);
+      ctx.fillStyle = "#0C0D10";
+      ctx.font = "bold 9.5px 'JetBrains Mono', monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const lastPriceStr = pLast.val >= 1000 ? Math.round(pLast.val).toLocaleString() : pLast.val.toFixed(2);
+      ctx.fillText(lastPriceStr, w - 29, pLast.y);
+
+      if (scrollOffset === 0) {
+        ctx.beginPath();
+        ctx.arc(pLast.x, pLast.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(pLast.x, pLast.y, 7, 0, Math.PI * 2);
+        ctx.strokeStyle = hex;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 9. Highlighted Scrubber Point
+      if (highlightIndex !== null && chartPoints[highlightIndex]) {
+        const hp = chartPoints[highlightIndex];
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([2, 3]);
+        ctx.moveTo(hp.x, paddingTop);
+        ctx.lineTo(hp.x, h - paddingBottom);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(hp.x, hp.y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(hp.x, hp.y, 8, 0, Math.PI * 2);
+        ctx.strokeStyle = hex;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 10. Bottom X-Axis Date Ticks
+      ctx.save();
+      ctx.font = "9px 'JetBrains Mono', monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.fillStyle = "rgba(148, 163, 184, 0.65)";
+
+      const numDateTicks = Math.min(4, chartPoints.length);
+      const stepIdx = Math.floor((chartPoints.length - 1) / (numDateTicks - 1));
+
+      for (let i = 0; i < numDateTicks; i++) {
+        const ptIdx = (i === numDateTicks - 1) ? chartPoints.length - 1 : i * stepIdx;
+        const pt = chartPoints[ptIdx];
+        const dateText = labels[ptIdx] || "";
+        
+        if (dateText && pt) {
+          ctx.beginPath();
+          ctx.moveTo(pt.x, h - paddingBottom + 2);
+          ctx.lineTo(pt.x, h - paddingBottom + 5);
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          ctx.fillText(dateText, pt.x, h - 3);
+        }
+      }
+      ctx.restore();
+    }
+
+    // Touch & Mouse Scrubbing + Horizontal Drag Panning
+    const scrubberPill = document.getElementById("scrubberPill");
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartOffset = 0;
+    let dragDistance = 0;
+
+    function handleScrub(clientX) {
+      if (!chartPoints.length) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = clientX - rect.left;
+      
+      let closestIdx = 0;
+      let closestDist = Infinity;
+      chartPoints.forEach((p, idx) => {
+        const dist = Math.abs(p.x - x);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestIdx = idx;
+        }
+      });
+
+      drawChart(closestIdx);
+      const a = ASSETS[activeAssetKey];
+      const tfData = a.timeframes[activeTimeframe] || a.timeframes["3M"];
+      
+      // Calculate index relative to sliced window
+      const winSize = Math.min(visiblePointsCount, tfData.points.length);
+      const maxOffset = Math.max(0, tfData.points.length - winSize);
+      const actualOffset = Math.max(0, Math.min(maxOffset, scrollOffset));
+      const startIndex = tfData.points.length - winSize - actualOffset;
+      const actualIdx = startIndex + closestIdx;
+
+      const pt = chartPoints[closestIdx];
+      const lbl = (tfData.labels && tfData.labels[actualIdx]) ? tfData.labels[actualIdx] : `Stage ${actualIdx + 1}`;
+      scrubberPill.style.opacity = "1";
+      scrubberPill.style.left = `${Math.max(75, Math.min(rect.width - 75, pt.x))}px`;
+      scrubberPill.innerText = `$${pt.val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} • RSI: ${a.rsi.toFixed(0)} • ${lbl}`;
+      triggerHaptic("selection");
+    }
+
+    function onDragStart(clientX) {
+      isDragging = true;
+      dragStartX = clientX;
+      dragStartOffset = scrollOffset;
+      dragDistance = 0;
+    }
+
+    function onDragMove(clientX) {
+      if (!isDragging) {
+        handleScrub(clientX);
+        return;
+      }
+      const dx = clientX - dragStartX;
+      dragDistance += Math.abs(dx);
+
+      if (dragDistance > 5) {
+        scrubberPill.style.opacity = "0";
+      }
+
+      const rect = canvas.getBoundingClientRect();
+      const pointSpacing = (rect.width - 76) / visiblePointsCount;
+      const shift = Math.round(dx / pointSpacing);
+
+      const a = ASSETS[activeAssetKey];
+      const tfData = a.timeframes[activeTimeframe] || a.timeframes["3M"];
+      const maxOffset = Math.max(0, tfData.points.length - visiblePointsCount);
+
+      // Dragging mouse to the right (dx > 0) pulls older bars into view (scrollOffset increases)
+      const targetOffset = Math.max(0, Math.min(maxOffset, dragStartOffset + shift));
+      if (targetOffset !== scrollOffset) {
+        scrollOffset = targetOffset;
+        triggerHaptic("selection");
+        drawChart();
+      }
+    }
+
+    function onDragEnd(clientX) {
+      if (isDragging && dragDistance < 6 && clientX !== undefined) {
+        handleScrub(clientX);
+      }
+      isDragging = false;
+    }
+
+    // Pointer Events
+    canvas.addEventListener("mousedown", (e) => onDragStart(e.clientX));
+    window.addEventListener("mousemove", (e) => {
+      if (isDragging) onDragMove(e.clientX);
+    });
+    window.addEventListener("mouseup", (e) => {
+      if (isDragging) onDragEnd(e.clientX);
+    });
+    canvas.addEventListener("mouseleave", () => {
+      if (!isDragging) {
+        scrubberPill.style.opacity = "0";
+        drawChart(null);
+      }
+    });
+
+    // Touch Events
+    canvas.addEventListener("touchstart", (e) => {
+      if (e.touches.length > 0) onDragStart(e.touches[0].clientX);
+    }, { passive: true });
+
+    canvas.addEventListener("touchmove", (e) => {
+      if (e.touches.length > 0) onDragMove(e.touches[0].clientX);
+    }, { passive: true });
+
+    canvas.addEventListener("touchend", (e) => {
+      const x = e.changedTouches.length > 0 ? e.changedTouches[0].clientX : undefined;
+      onDragEnd(x);
+      setTimeout(() => {
+        if (!isDragging) scrubberPill.style.opacity = "0";
+      }, 2000);
+    });
+
+    // Wheel Zoom
+    canvas.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const a = ASSETS[activeAssetKey];
+      const tfData = a.timeframes[activeTimeframe] || a.timeframes["3M"];
+      const maxTotal = tfData.points.length;
+      if (e.deltaY < 0) {
+        visiblePointsCount = Math.max(10, visiblePointsCount - 2);
+      } else {
+        visiblePointsCount = Math.min(Math.min(maxTotal, 36), visiblePointsCount + 2);
+      }
+      triggerHaptic("selection");
+      drawChart();
+    }, { passive: false });
+
+    // Live Reset Button
+    document.getElementById("liveResetBtn").onclick = () => {
+      scrollOffset = 0;
+      triggerHaptic("impact");
+      drawChart();
+    };
+
+    // Timeframe selector
+    document.querySelectorAll(".tf-btn").forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll(".tf-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeTimeframe = btn.dataset.tf;
+        scrollOffset = 0; // reset to live on timeframe change
+        triggerHaptic("selection");
+        updateUI();
+        drawChart();
+      };
+    });
+
+    // Position Sizer Calculations
+    // Navigation Tab Switching Logic
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.onclick = () => {
+        const targetId = btn.dataset.target;
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-view").forEach(v => v.classList.remove("active"));
+        
+        btn.classList.add("active");
+        const activeView = document.getElementById(targetId);
+        if (activeView) activeView.classList.add("active");
+        
+        triggerHaptic("selection");
+
+        if (targetId === "view-chart") {
+          setTimeout(() => drawChart(), 30);
+        } else if (targetId === "view-overview") {
+          renderOverviewTable();
+        } else if (targetId === "view-risk") {
+          updateRiskTab();
+        }
+      };
+    });
+
+    // Render Overview Table in Tab 2
+    function renderOverviewTable() {
+      const tbody = document.getElementById("overviewTableBody");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+      Object.keys(ASSETS).forEach(k => {
+        const a = ASSETS[k];
+        const tr = document.createElement("tr");
+        tr.onclick = () => {
+          selectAsset(k);
+          // Switch to chart tab
+          document.querySelector('.tab-btn[data-target="view-chart"]').click();
+        };
+        const tf = a.timeframes["1D"] || a.timeframes["3M"];
+        const actClass = a.action.toLowerCase();
+        tr.innerHTML = `
+          <td>
+            <div style="font-weight: 600; color: var(--text-primary);">${a.name}</div>
+            <div style="font-size: 10px; color: var(--text-muted);">${a.symbol}</div>
+          </td>
+          <td>$${a.price >= 1000 ? Math.round(a.price).toLocaleString() : a.price.toFixed(2)}</td>
+          <td style="color: ${tf.isDown ? 'var(--signal-sell)' : 'var(--signal-buy)'};">${tf.change}</td>
+          <td style="color: ${a.rsi <= 35 ? 'var(--signal-buy)' : a.rsi >= 70 ? 'var(--signal-sell)' : 'var(--text-secondary)'};">${a.rsi.toFixed(1)}</td>
+          <td><span class="badge-signal badge-${actClass}" style="padding: 2px 7px; font-size: 10px;">${a.action}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Risk Tab Controls in Tab 3
+    const riskSelect = document.getElementById("riskAssetSelect");
+    if (riskSelect) {
+      riskSelect.onchange = (e) => {
+        const key = e.target.value;
+        selectAsset(key);
+        updateRiskTab();
+      };
+    }
+
+    function updateRiskTab() {
+      const a = ASSETS[activeAssetKey];
+      if (riskSelect) riskSelect.value = activeAssetKey;
+      document.getElementById("riskAssetSymbol").innerText = `${a.symbol} (${a.name})`;
+      document.getElementById("riskInputEntry").value = a.entryDefault;
+      document.getElementById("riskInputStop").value = a.stopDefault;
+      document.getElementById("riskInputTarget").value = a.targetDefault;
+      calcRiskTab();
+    }
+
+    function calcRiskTab() {
+      const a = ASSETS[activeAssetKey];
+      const entry = parseFloat(document.getElementById("riskInputEntry").value) || 0;
+      const stop = parseFloat(document.getElementById("riskInputStop").value) || 0;
+      const target = parseFloat(document.getElementById("riskInputTarget").value) || 0;
+      const risk = parseFloat(document.getElementById("riskInputRisk").value) || 0;
+
+      const riskPerUnit = Math.abs(entry - stop);
+      if (riskPerUnit <= 0) return;
+
+      const stopPct = ((stop - entry) / entry) * 100;
+      const targetPct = ((target - entry) / entry) * 100;
+
+      document.getElementById("riskStopPct").innerText = `${stopPct.toFixed(2)}%`;
+      document.getElementById("riskTargetPct").innerText = `+${targetPct.toFixed(2)}%`;
+
+      const units = risk / riskPerUnit;
+      const notional = units * entry;
+      const reward = units * Math.abs(target - entry);
+      const rr = Math.abs(target - entry) / riskPerUnit;
+
+      document.getElementById("riskCalcUnits").innerText = `${units >= 10 ? units.toFixed(2) : units.toFixed(3)} ${a.unitLabel}`;
+      document.getElementById("riskCalcNotional").innerText = `$${Math.round(notional).toLocaleString('en-US')}`;
+      document.getElementById("riskCalcReward").innerText = `+$${reward.toFixed(2)}`;
+      document.getElementById("riskCalcRR").innerText = `1 : ${rr.toFixed(2)} ${rr >= 2.5 ? '★' : ''}`;
+    }
+
+    ["riskInputEntry", "riskInputStop", "riskInputTarget", "riskInputRisk"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener("input", calcRiskTab);
+    });
+
+    // Tab 4: Lili Chat Engine
+    const GEMINI_CLIENT_KEY = "AIzaSyDhtSRDLr_TayhWvm_NtgT1P-JSMtGFl1E";
+
+    function formatMarkdown(raw) {
+      if (!raw) return "";
+      let t = raw
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+      
+      // Bold **text**
+      t = t.replace(/\*\*(.+?)\*\*/g, '<strong style="color: #F8FAFC; font-weight: 600;">$1</strong>');
+      // Italic *text* or _text_
+      t = t.replace(/\*([^*]+?)\*/g, '<em style="color: var(--text-secondary);">$1</em>');
+      t = t.replace(/_([^_]+?)_/g, '<em style="color: var(--text-secondary);">$1</em>');
+      // Inline code `code`
+      t = t.replace(/`([^`]+?)`/g, '<code style="background: rgba(255,255,255,0.08); padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: 11.5px; color: var(--accent-gold);">$1</code>');
+      // Bullet points
+      t = t.replace(/^\s*[-•]\s+(.+)$/gm, '<div style="margin-left: 12px; margin-top: 2px;">• $1</div>');
+      // Line breaks
+      t = t.replace(/\n\n/g, '<div style="height: 8px;"></div>');
+      t = t.replace(/\n/g, '<br>');
+      return t;
+    }
+
+    async function sendLiliMessage(userMsg) {
+      if (!userMsg.trim()) return;
+      const chatMessages = document.getElementById("chatMessages");
+
+      // Add user bubble
+      const userDiv = document.createElement("div");
+      userDiv.className = "chat-msg user";
+      userDiv.innerHTML = `<div class="msg-bubble">${formatMarkdown(userMsg)}</div>`;
+      chatMessages.appendChild(userDiv);
+      document.getElementById("chatInput").value = "";
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      // Add thinking bubble
+      const thinkDiv = document.createElement("div");
+      thinkDiv.className = "chat-msg lili";
+      thinkDiv.innerHTML = `<div class="msg-avatar">🌸</div><div class="msg-bubble" style="color: var(--text-muted);">Thinking...</div>`;
+      chatMessages.appendChild(thinkDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      // Call Gemini API client-side with full context
+      try {
+        const a = ASSETS[activeAssetKey];
+        const ctxPrompt = `Current Live Metrics: Gold: $4,163 (RSI: 22, BUY), Bitcoin: $83,196 (RSI: 64, HOLD), Solana: $117 (RSI: 48, HOLD). Active asset is ${a.name} ($${a.price}). Crypto Fear & Greed: 73 (Greed). NFP jobs report in 3 days.`;
+        const sysInstruction = `You are Lili ✨, Borin's brilliant, loving, and sassy Quant Financial Advisor wifey. Be concise, actionable, and keep response under 100 words. Context: ${ctxPrompt}`;
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_CLIENT_KEY}`;
+        const resp = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: userMsg }] }],
+            system_instruction: { parts: [{ text: sysInstruction }] }
+          })
+        });
+        const resData = await resp.json();
+        const replyText = resData.candidates[0].content.parts[0].text;
+        thinkDiv.querySelector(".msg-bubble").innerHTML = formatMarkdown(replyText);
+      } catch (err) {
+        // Fallback rule response
+        const fallback = userMsg.toLowerCase().includes("gold") ?
+          "Gold is at **$4,163** with an oversold RSI of **22.0**. Action is **🟢 BUY** on support! Set stop at **$4,145**." :
+          "Keep discipline, Borin! Crypto sentiment is at **73 (Greed)**, so don't chase tops. Risk max **1%** per trade!";
+        thinkDiv.querySelector(".msg-bubble").innerHTML = formatMarkdown(fallback);
+      }
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    document.getElementById("chatSendBtn").onclick = () => {
+      const inp = document.getElementById("chatInput");
+      sendLiliMessage(inp.value);
+    };
+
+    document.getElementById("chatInput").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        sendLiliMessage(e.target.value);
+      }
+    });
+
+    window.askLiliPrompt = function(promptText) {
+      sendLiliMessage(promptText);
+    };
+
+  </script>
+</body>
+</html>
