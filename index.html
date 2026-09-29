@@ -1465,25 +1465,26 @@
     if (window.Telegram && window.Telegram.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
+      if (window.Telegram.WebApp.disableVerticalSwipes) { window.Telegram.WebApp.disableVerticalSwipes(); }
     }
 
     // Layer Controls
     document.getElementById("toggleSMA").onclick = (e) => {
-      showSMA = __omp_shell("showSMA;")
+      showSMA = !showSMA;
       e.currentTarget.classList.toggle("active", showSMA);
       triggerHaptic("selection");
       drawChart();
     };
 
     document.getElementById("toggleLevels").onclick = (e) => {
-      showLevels = __omp_shell("showLevels;")
+      showLevels = !showLevels;
       e.currentTarget.classList.toggle("active", showLevels);
       triggerHaptic("selection");
       drawChart();
     };
 
     document.getElementById("toggleSignals").onclick = (e) => {
-      showSignals = __omp_shell("showSignals;")
+      showSignals = !showSignals;
       e.currentTarget.classList.toggle("active", showSignals);
       triggerHaptic("selection");
       drawChart();
@@ -2059,26 +2060,37 @@
 
     // Position Sizer Calculations
     // Navigation Tab Switching Logic
-    document.querySelectorAll(".tab-btn").forEach(btn => {
-      btn.onclick = () => {
-        const targetId = btn.dataset.target;
-        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-        document.querySelectorAll(".tab-view").forEach(v => v.classList.remove("active"));
-        
-        btn.classList.add("active");
-        const activeView = document.getElementById(targetId);
-        if (activeView) activeView.classList.add("active");
-        
-        triggerHaptic("selection");
+    function switchTab(targetId) {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".tab-view").forEach(v => v.classList.remove("active"));
+      
+      const targetBtn = document.querySelector(`.tab-btn[data-target="${targetId}"]`);
+      if (targetBtn) targetBtn.classList.add("active");
+      
+      const activeView = document.getElementById(targetId);
+      if (activeView) activeView.classList.add("active");
+      
+      triggerHaptic("selection");
 
-        if (targetId === "view-chart") {
-          setTimeout(() => drawChart(), 30);
-        } else if (targetId === "view-overview") {
-          renderOverviewTable();
-        } else if (targetId === "view-risk") {
-          updateRiskTab();
+      if (targetId === "view-chart") {
+        setTimeout(() => drawChart(), 40);
+      } else if (targetId === "view-overview") {
+        renderOverviewTable();
+      } else if (targetId === "view-risk") {
+        updateRiskTab();
+      }
+    }
+
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      const handleTab = (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
         }
+        switchTab(btn.dataset.target);
       };
+      btn.addEventListener("click", handleTab);
+      btn.addEventListener("touchend", handleTab, { passive: false });
     });
 
     // Render Overview Table in Tab 2
